@@ -4,6 +4,7 @@ import os
 import pickle
 import urllib.parse
 import pymysql
+import re
 
 json_data = open('set.json').read()
 data = json.loads(json_data)
@@ -42,13 +43,14 @@ def mainprocess(dictdata):
     for i in range(len(dictdata)):
         try:
             # 데이터를 읽어서 본문, 문서 제목, 리비전 수를 셉니다.
-            text = str(dictdata[i]['text'])
             revision = len(dictdata[i]['contributors'])
             namespace = str(dictdata[i]['namespace'])
             if(namespace == '0' or namespace == '1'):
                 if(namespace == '1'):
+                    text = re.sub("\[\[분류:(?P<in>(?:(?!]]).)*)]]", "{{{#!noin [[분류:\g<in>]]}}}", str(dictdata[i]['text']))
                     title = '틀:' + str(dictdata[i]['title'])
                 else:
+                    text = str(dictdata[i]['text'])
                     title = str(dictdata[i]['title'])
                 # SQL에 삽입 합니다.
                 try:
