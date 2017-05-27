@@ -43,6 +43,7 @@ def mainprocess(dictdata):
     for i in range(len(dictdata)):
         try:
             # 데이터를 읽어서 본문, 문서 제목, 리비전 수를 셉니다.
+            print(i)
             revision = len(dictdata[i]['contributors'])
             namespace = str(dictdata[i]['namespace'])
             if(namespace == '0' or namespace == '1'):
@@ -77,7 +78,7 @@ def mainprocess(dictdata):
 
 
 
-print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.\n 만약 이 스크립트를 이전에 실행한 적이 있으시다면, 그때 생성된 임시 파일을 사용합니다.")
+print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.\n만약 이 스크립트를 이전에 실행한 적이 있으시다면, 그때 생성된 임시 파일을 사용합니다.")
 
 if os.path.exists(os.path.join("rawdata.pickle")) == True:
     print("임시 파일이 로딩되었습니다.")
