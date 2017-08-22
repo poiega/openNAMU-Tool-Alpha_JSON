@@ -3,14 +3,14 @@ import json
 import os
 import pickle
 import urllib.parse
-import pymysql
+import sqlite3
 import re
 
 json_data = open('set.json').read()
-data = json.loads(json_data)
+set_data = json.loads(json_data)
 
-conn = pymysql.connect(host = data['host'], user = data['user'], password = data['pw'], db = data['db'], charset = 'utf8mb4')
-curs = conn.cursor(pymysql.cursors.DictCursor)
+conn = sqlite3.connect(set_data['db'] + '.db')
+curs = conn.cursor()
 
 # 숫자 판단
 def isNumber(data):
@@ -54,7 +54,7 @@ def mainprocess(dictdata):
                 
             # SQL에 삽입 합니다.
             try:
-                curs.execute("insert into data (title, data, acl) value ('" + pymysql.escape_string(title) + "', '" + pymysql.escape_string(text) + "', '')")
+                curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
             except:
                 Errorlist.append(title)
                 
@@ -65,16 +65,15 @@ def mainprocess(dictdata):
                 editor = dictdata[i]['contributors'][x]
                 editor = editorProcess(editor)
                 try:
-                    curs.execute("insert into history (id, title, data, date, ip, send, leng) value ('" + pymysql.escape_string(str(revisionNum)) + "', '" + pymysql.escape_string(title) + "', '', '" + pymysql.escape_string(editTime) + "', '" + pymysql.escape_string(editor) + "', '', '0')")
+                    curs.execute("insert into history (id, title, data, date, ip, send, leng) values (?, ?, '', ?, ?, '', '0')", [str(revisionNum), title, editTime, editor])
                 except:
                     Errorlist.append(title)
-
             
     print("문서 변환 작업이 종료되었습니다.")
     print(str(len(dictdata)) + "개의 문서가 데이터에 존재합니다. 그 중 " + str((len(dictdata) - len(Errorlist))) + "개의 문서가 변환되었습니다. 오류가 발생한 문서는 " + str(len(Errorlist)) + " 개 입니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
-    
+
 jsondata = os.path.join('namuwikidata.json')
 namuwikidata = open(jsondata,'r')
 print("JSON 데이터 읽기 완료")
