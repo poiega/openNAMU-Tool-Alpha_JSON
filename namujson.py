@@ -4,6 +4,7 @@ import os
 import pickle
 import urllib.parse
 import sqlite3
+import pickle
 import re
 
 json_data = open('set.json').read()
@@ -31,56 +32,53 @@ def editorProcess(editor):
     return(editor)
     
 def mainprocess(dictdata):
-    revision = 0
     revisionNum = 0
-    editTime = 'Dump'
-    Errorlist = []
+    editTime = ''
+    x = 0
 
-    # 이하의 코드는 문서별로 실행됩니다.
-    for i in range(len(dictdata)):
-        # 데이터를 읽어서 본문, 문서 제목, 리비전 수를 셉니다.
-        print(i)
-        
-        revision = len(dictdata[i]['contributors'])
-        namespace = str(dictdata[i]['namespace'])
-        
+    for d_dict in dictdata:
+        print(x + 1)
+        x += 1
+        namespace = str(d_dict['namespace'])
         if(namespace == '0' or namespace == '1'):
             if(namespace == '1'):
-                text = re.sub("\[\[분류:(?P<in>(?:(?!]]).)*)]]", "{{{#!noin [[분류:\g<in>]]}}}", str(dictdata[i]['text']))
-                title = '틀:' + str(dictdata[i]['title'])
+                text = re.sub("\[\[분류:(?P<in>(?:(?!]]).)*)]]", "{{{#!noin [[분류:\g<in>]]}}}", str(d_dict['text']))
+                title = '틀:' + str(d_dict['title'])
             else:
-                text = str(dictdata[i]['text'])
-                title = str(dictdata[i]['title'])
+                text = str(d_dict['text'])
+                title = str(d_dict['title'])
                 
-            # SQL에 삽입 합니다.
-            try:
-                curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
-            except:
-                Errorlist.append(title)
-                
-            # 이하의 코드는 리비전별로 실행됩니다.
-            for x in range(revision):      
-                revisionNum = x+1
-                # 편집자 기록을 만듭니다.
-                editor = dictdata[i]['contributors'][x]
+            print(text)
+            curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
+
+            revision = len(d_dict['contributors'])
+            for y in range(revision):
+                revisionNum = y + 1
+                editor = d_dict['contributors'][x]
                 editor = editorProcess(editor)
-                try:
-                    curs.execute("insert into history (id, title, data, date, ip, send, leng) values (?, ?, '', ?, ?, '', '0')", [str(revisionNum), title, editTime, editor])
-                except:
-                    Errorlist.append(title)
+
+                curs.execute("insert into history (id, title, data, date, ip, send, leng) values (?, ?, '', ?, ?, '', '0')", [str(revisionNum), title, editTime, editor])
             
     print("문서 변환 작업이 종료되었습니다.")
-    print(str(len(dictdata)) + "개의 문서가 데이터에 존재합니다. 그 중 " + str((len(dictdata) - len(Errorlist))) + "개의 문서가 변환되었습니다. 오류가 발생한 문서는 " + str(len(Errorlist)) + " 개 입니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
+if(os.path.exists(os.path.join("rawdata.pickle")) != True):
+    jsondata = os.path.join('namuwikidata.json')
+    namuwikidata = open(jsondata,'r')
+    print("JSON 데이터 읽기 완료")
 
-jsondata = os.path.join('namuwikidata.json')
-namuwikidata = open(jsondata,'r')
-print("JSON 데이터 읽기 완료")
+    dictdata = json.load(namuwikidata)
+    namuwikidata.close()
+    print("JSON 데이터 사전형으로 변환 완료")
 
-dictdata = json.load(namuwikidata)
-namuwikidata.close()
-print("JSON 데이터 사전형으로 변환 완료")
+    tempdata = open('rawdata.pickle', 'wb')
+    pickle.dump(dictdata,tempdata)
+    print("다음 실행을 위해서 임시 데이터를 저장합니다.")
+
+rawdata_address = r"rawdata.pickle"
+rawdata = open(os.path.join(rawdata_address),'rb')
+dictdata = pickle.load(rawdata)
+rawdata.close()
     
 print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
 mainprocess(dictdata)
