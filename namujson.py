@@ -47,6 +47,21 @@ def mainprocess(dictdata):
             else:
                 text = str(d_dict['text'])
                 title = str(d_dict['title'])
+
+            r_pas = re.compile('(http(?:s)?:\/\/(?:(?:(?!(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]| |]])).)*))(\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))((?:(?:\?|&)[^ \]|]*)+)?')
+            image = r_pas.findall(text)
+            for i_data in image:
+                try:
+                    plus = re.sub('\?', '|', i_data[2])
+                except:
+                    plus = ''
+
+                h = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', i_data[1])
+                    
+                r_i_data = '[[외부:' + i_data[0] + h + plus + ']]'
+                text = r_pas.sub(r_i_data, text, 1)
+
+            text = re.sub('#(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])#', '.\g<in>', text)
                 
             print(text)
             curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
