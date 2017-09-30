@@ -52,14 +52,17 @@ def mainprocess(dictdata):
             image = r_pas.findall(text)
             for i_data in image:
                 try:
-                    plus = re.sub('\?', '|', i_data[2])
-                except:
-                    plus = ''
+                    try:
+                        plus = re.sub('\?', '|', i_data[2])
+                    except:
+                        plus = ''
 
-                h = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', i_data[1])
-                    
-                r_i_data = '[[외부:' + i_data[0] + h + plus + ']]'
-                text = r_pas.sub(r_i_data, text, 1)
+                    h = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', i_data[1])
+                        
+                    r_i_data = '[[외부:' + i_data[0] + h + plus + ']]'
+                    text = r_pas.sub(r_i_data, text, 1)
+                except:
+                    text = r_pas.sub('', text, 1)
 
             text = re.sub('#(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])#', '.\g<in>', text)
                 
