@@ -63,13 +63,12 @@ def mainprocess(dictdata):
 
             text = re.sub('#(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])#', '.\g<in>', text)
                 
-            print(text)
             curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
 
             revision = len(d_dict['contributors'])
             for y in range(revision):
                 revisionNum = y + 1
-                editor = d_dict['contributors'][x]
+                editor = d_dict['contributors'][y]
                 editor = editorProcess(editor)
 
                 curs.execute("insert into history (id, title, data, date, ip, send, leng) values (?, ?, '', ?, ?, '', '0')", [str(revisionNum), title, editTime, editor])
