@@ -48,7 +48,7 @@ def mainprocess(dictdata):
                 text = str(d_dict['text'])
                 title = str(d_dict['title'])
 
-            r_pas = re.compile('(http(?:s)?:\/\/(?:(?:(?!(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]| |]])).)*))(\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))((?:(?:\?|&)[^ \]|]*)+)?')
+            r_pas = re.compile('(http(?:s)?:\/\/(?:(?:(?!(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])| |]])).)*))(\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))((?:(?:\?|&)[^ \n\]|]*)+)?')
             image = r_pas.findall(text)
             for i_data in image:
                 try:
