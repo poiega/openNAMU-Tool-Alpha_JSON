@@ -24,10 +24,10 @@ def isNumber(data):
 
 # 편집자를 구분하는 부분입니다. 리그베다 위키 유저는 R:로, 나무위키 유저는 N:의 Prefix가 붙습니다.
 def editorProcess(editor):
-    if(editor.find("R : ") != -1 or isNumber(editor) == True):
+    if(editor.find("R:") != -1 or isNumber(editor) == True):
         pass
     else:
-        editor = "N : " + editor
+        editor = "N:" + editor
     
     return(editor)
     
@@ -47,6 +47,12 @@ def mainprocess(dictdata):
             else:
                 text = str(d_dict['text'])
                 title = str(d_dict['title'])
+
+            n_pas = re.compile('(\[\[(?:http(?:s)?:\/\/(?:(?:(?!(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])|\|)).)*))(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))\|(?:(?:(?!\]\]).)*)\]\])')
+            n_image = n_pas.findall(text)
+            for n_data in n_image:
+                e_data = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', n_data)
+                text = n_pas.sub(e_data, text, 1)
 
             r_pas = re.compile('(http(?:s)?:\/\/(?:(?:(?!(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])| |]])).)*))(\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))((?:(?:\?|&)[^ \n\]|]*)+)?')
             image = r_pas.findall(text)
