@@ -4,13 +4,15 @@ import os
 import pickle
 import urllib.parse
 import sqlite3
+import threading
 import pickle
 import re
 
-json_data = open('set.json').read()
-set_data = json.loads(json_data)
+# 디비 이름 불러옴
+db_name = str(input())
 
-conn = sqlite3.connect(set_data['db'] + '.db')
+# 디비 연결
+conn = sqlite3.connect(db_name + '.db', check_same_thread = False)
 curs = conn.cursor()
 
 # 숫자 판단
@@ -24,7 +26,7 @@ def isNumber(data):
 
 # 편집자를 구분하는 부분입니다. 리그베다 위키 유저는 R:로, 나무위키 유저는 N:의 Prefix가 붙습니다.
 def editorProcess(editor):
-    if(editor.find("R:") != -1 or isNumber(editor) == True):
+    if editor.find("R:") != -1 or isNumber(editor) == True:
         pass
     else:
         editor = "N:" + editor
@@ -35,57 +37,39 @@ def mainprocess(dictdata):
     revisionNum = 0
     editTime = ''
     x = 0
-
     for d_dict in dictdata:
         print(x + 1)
+        
         x += 1
+        
         namespace = str(d_dict['namespace'])
-        if(namespace == '0' or namespace == '1'):
-            if(namespace == '1'):
-                text = re.sub("\[\[분류:(?P<in>(?:(?!]]).)*)]]", "{{{#!noin [[분류:\g<in>]]}}}", str(d_dict['text']))
+        if namespace == '0' or namespace == '1':
+            if namespace == '1':
+                text = str(d_dict['text'])
                 title = '틀:' + str(d_dict['title'])
             else:
                 text = str(d_dict['text'])
                 title = str(d_dict['title'])
-
-            n_pas = re.compile('(\[\[(?:http(?:s)?:\/\/(?:(?:(?!(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])|\|)).)*))(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))\|(?:(?:(?!\]\]).)*)\]\])')
-            n_image = n_pas.findall(text)
-            for n_data in n_image:
-                e_data = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', n_data)
-                text = n_pas.sub(e_data, text, 1)
-
-            r_pas = re.compile('(http(?:s)?:\/\/(?:(?:(?!(?:\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])|\|| |]])).)*))(\.(?:[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp]))((?:(?:\?|&)[^ \n\]|]*)+)?')
-            image = r_pas.findall(text)
-            for i_data in image:
-                try:
-                    try:
-                        plus = re.sub('\?', '|', i_data[2])
-                    except:
-                        plus = ''
-
-                    h = re.sub('\.(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])', '#\g<in>#', i_data[1])
-                        
-                    r_i_data = '[[외부:' + i_data[0] + h + plus + ']]'
-                    text = r_pas.sub(r_i_data, text, 1)
-                except:
-                    text = r_pas.sub('', text, 1)
-
-            text = re.sub('#(?P<in>[Pp][Nn][Gg]|[Gg][Ii][Ff]|[Jj][Pp][Gg]|[Jj][Pp][Ee][Gg]|[Ww][Ee][Bb][Pp])#', '.\g<in>', text)
                 
-            curs.execute("insert into data (title, data, acl) values (?, ?, '')", [title, text])
+            curs.execute("insert into data (title, data) values (?, ?)", [title, text])
 
             revision = len(d_dict['contributors'])
             for y in range(revision):
                 revisionNum = y + 1
+                
                 editor = d_dict['contributors'][y]
                 editor = editorProcess(editor)
 
-                curs.execute("insert into history (id, title, data, date, ip, send, leng) values (?, ?, '', ?, ?, '', '0')", [str(revisionNum), title, editTime, editor])
+                if y == revision:
+                    curs.execute("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')", [str(revisionNum), title, text, editTime, editor])
+                else:
+                    curs.execute("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, '', ?, ?, '', '0', '')", [str(revisionNum), title, editTime, editor])
+
             
     print("문서 변환 작업이 종료되었습니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
-if(os.path.exists(os.path.join("rawdata.pickle")) != True):
+if os.path.exists(os.path.join("rawdata.pickle")) != True:
     jsondata = os.path.join('namuwikidata.json')
     namuwikidata = open(jsondata,'r')
     print("JSON 데이터 읽기 완료")
