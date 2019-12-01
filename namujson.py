@@ -3,17 +3,115 @@ import json
 import os
 import pickle
 import urllib.parse
+import pymysql
 import sqlite3
 import threading
 import pickle
 import re
 
-# 디비 이름 불러옴
-db_name = str(input())
+# DB
+while 1:
+    try:
+        set_data = json.loads(open('data/set.json').read())
+        if not 'db_type' in set_data:
+            try:
+                os.remove('data/set.json')
+            except:
+                print('Please delete set.json')
+                print('----')
+                raise
+        else:
+            break
+    except:
+        if os.getenv('NAMU_DB') != None or os.getenv('NAMU_DB_TYPE') != None:
+            set_data = { 
+                "db" : os.getenv('NAMU_DB') if os.getenv('NAMU_DB') else 'data', 
+                "db_type" : os.getenv('NAMU_DB_TYPE') if os.getenv('NAMU_DB_TYPE') else 'sqlite'
+            }
 
-# 디비 연결
-conn = sqlite3.connect(db_name + '.db', check_same_thread = False)
-curs = conn.cursor()
+            break
+        else:        
+            new_json = ['', '']
+            normal_db_type = ['sqlite', 'mysql']
+
+            print('DB type (sqlite, mysql) : ', end = '')
+            new_json[0] = str(input())
+            if new_json[0] == '' or not new_json[0] in normal_db_type:
+                new_json[0] = 'sqlite'
+
+            all_src = []
+            for i_data in os.listdir("."):
+                f_src = re.search("(.+)\.db$", i_data)
+                if f_src:
+                    all_src += [f_src.groups()[0]]
+
+            if all_src != []:
+                print('DB name (' + ', '.join(all_src) + ') : ', end = '')
+            else:
+                print('DB name (data) : ', end = '')
+
+            new_json[1] = str(input())
+            if new_json[1] == '':
+                new_json[1] = 'data'
+                
+            with open('data/set.json', 'w') as f:
+                f.write('{ "db" : "' + new_json[1] + '", "db_type" : "' + new_json[0] + '" }')
+                
+            set_data = json.loads(open('data/set.json').read())
+            
+            break
+        
+print('DB name : ' + set_data['db'])
+print('DB type : ' + set_data['db_type'])
+
+def db_change(data):
+    if set_data['db_type'] == 'mysql':
+        data = data.replace('random()', 'rand()')
+        data = data.replace('%', '%%')
+        data = data.replace('?', '%s')
+
+    return data
+
+if set_data['db_type'] == 'mysql':
+    try:
+        set_data_mysql = json.loads(open('data/mysql.json').read())
+    except:
+        new_json = ['', '']
+
+        while 1:
+            print('DB user id : ', end = '')
+            new_json[0] = str(input())
+            if new_json[0] != '':
+                break
+
+        while 1:
+            print('DB password : ', end = '')
+            new_json[1] = str(input())
+            if new_json[1] != '':
+                break
+
+        with open('data/mysql.json', 'w') as f:
+            f.write('{ "user" : "' + new_json[0] + '", "password" : "' + new_json[1] + '" }')
+                
+        set_data_mysql = json.loads(open('data/mysql.json').read())
+
+    conn = pymysql.connect(
+        host = 'localhost', 
+        user = set_data_mysql['user'], 
+        password = set_data_mysql['password'],
+        charset = 'utf8mb4'
+    )
+    curs = conn.cursor()
+
+    try:
+        curs.execute(db_change('create database ? default character set utf8mb4;')%pymysql.escape_string(set_data['db']))
+    except:
+        pass
+
+    curs.execute(db_change('use ?')%pymysql.escape_string(set_data['db']))
+else:
+    conn = sqlite3.connect(set_data['db'] + '.db', check_same_thread = False)
+    curs = conn.cursor()
 
 # 숫자 판단
 def isNumber(data):
@@ -37,10 +135,10 @@ def mainprocess(dictdata):
     revisionNum = 0
     editTime = ''
     x = 0
-    for d_dict in dictdata:
-        print(x + 1)
-        
+    for d_dict in dictdata:        
         x += 1
+        if x % 100 == 0:
+            print(x)
         
         namespace = str(d_dict['namespace'])
         if namespace == '0' or namespace == '1':
@@ -51,7 +149,10 @@ def mainprocess(dictdata):
                 text = str(d_dict['text'])
                 title = str(d_dict['title'])
                 
-            curs.execute("insert into data (title, data) values (?, ?)", [title, text])
+            curs.execute(db_change("insert into data (title, data) values (?, ?)"), [title, text])
+
+            if x == 0:
+                break
 
             revision = len(d_dict['contributors'])
             for y in range(revision):
@@ -60,10 +161,13 @@ def mainprocess(dictdata):
                 editor = d_dict['contributors'][y]
                 editor = editorProcess(editor)
 
-                if y == revision:
-                    curs.execute("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')", [str(revisionNum), title, text, editTime, editor])
-                else:
-                    curs.execute("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, '', ?, ?, '', '0', '')", [str(revisionNum), title, editTime, editor])
+                curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), [
+                    str(revisionNum), 
+                    title, 
+                    text if y == revision else '', 
+                    editTime, 
+                    editor
+                ])
 
             
     print("문서 변환 작업이 종료되었습니다.")
@@ -83,7 +187,7 @@ if os.path.exists(os.path.join("rawdata.pickle")) != True:
     print("다음 실행을 위해서 임시 데이터를 저장합니다.")
 
 rawdata_address = r"rawdata.pickle"
-rawdata = open(os.path.join(rawdata_address),'rb')
+rawdata = open(os.path.join(rawdata_address), 'rb')
 dictdata = pickle.load(rawdata)
 rawdata.close()
     
