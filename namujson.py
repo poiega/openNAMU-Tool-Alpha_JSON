@@ -169,7 +169,9 @@ def mainprocess(dictdata):
                     editor
                 ])
 
-            
+    curs.execute(db_change('delete from other where name = "count_all_title"'))
+    curs.execute(db_change('insert into other (name, data) values ("count_all_title", ?)'), [str(x)])
+    
     print("문서 변환 작업이 종료되었습니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
