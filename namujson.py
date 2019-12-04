@@ -116,15 +116,12 @@ else:
 
 # 편집자를 구분하는 부분입니다. 리그베다 위키 유저는 R:로, 나무위키 유저는 N:의 Prefix가 붙습니다.
 def editorProcess(editor):
-    if re.search("^R:") or re.search('(\.|:)', editor):
-        pass
-    else:
+    if not re.search("^R:", editor) or not re.search('(\.|:)', editor):
         editor = "N:" + editor
     
     return(editor)
     
 def mainprocess(dictdata):
-    revisionNum = 0
     editTime = str(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     x = 0
     for d_dict in dictdata:        
@@ -134,31 +131,19 @@ def mainprocess(dictdata):
         
         namespace = str(d_dict['namespace'])
         if namespace == '0' or namespace == '1':
-            if namespace == '1':
-                text = str(d_dict['text'])
-                title = '틀:' + str(d_dict['title'])
-            else:
-                text = str(d_dict['text'])
-                title = str(d_dict['title'])
+            text = str(d_dict['text'])
+            title = ('틀:' if namespace == '1' else '') + str(d_dict['title'])
+            revision = len(d_dict['contributors'])
                 
             curs.execute(db_change("insert into data (title, data) values (?, ?)"), [title, text])
-
-            if x == 0:
-                break
-
-            revision = len(d_dict['contributors'])
+            
             for y in range(revision):
-                revisionNum = y + 1
-                
-                editor = d_dict['contributors'][y]
-                editor = editorProcess(editor)
-
                 curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), [
-                    str(revisionNum), 
+                    str(y + 1), 
                     title, 
                     text if y == revision else '', 
                     editTime, 
-                    editor
+                    editorProcess(d_dict['contributors'][y])
                 ])
 
     curs.execute(db_change('delete from other where name = "count_all_title"'))
