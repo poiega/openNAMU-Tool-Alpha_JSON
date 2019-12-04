@@ -3,13 +3,14 @@ import json
 import os
 import pickle
 import urllib.parse
+import datetime
 import pymysql
 import sqlite3
 import threading
 import pickle
 import re
 
-# DB
+# 디비 설정
 while 1:
     try:
         set_data = json.loads(open('data/set.json').read())
@@ -113,18 +114,9 @@ else:
     conn = sqlite3.connect(set_data['db'] + '.db', check_same_thread = False)
     curs = conn.cursor()
 
-# 숫자 판단
-def isNumber(data):
-  try:
-    tmp1 = float(data)
-    
-    return(True)
-  except ValueError:
-    return(False)
-
 # 편집자를 구분하는 부분입니다. 리그베다 위키 유저는 R:로, 나무위키 유저는 N:의 Prefix가 붙습니다.
 def editorProcess(editor):
-    if editor.find("R:") != -1 or isNumber(editor) == True:
+    if re.search("^R:") or re.search('(\.|:)', editor):
         pass
     else:
         editor = "N:" + editor
@@ -133,7 +125,7 @@ def editorProcess(editor):
     
 def mainprocess(dictdata):
     revisionNum = 0
-    editTime = ''
+    editTime = str(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     x = 0
     for d_dict in dictdata:        
         x += 1
