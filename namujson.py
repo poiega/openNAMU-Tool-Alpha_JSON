@@ -22,20 +22,26 @@ while 1:
                 print('----')
                 raise
         else:
+            print('DB name : ' + set_data['db'])
+            print('DB type : ' + set_data['db_type'])
+
             break
     except:
         if os.getenv('NAMU_DB') != None or os.getenv('NAMU_DB_TYPE') != None:
-            set_data = { 
-                "db" : os.getenv('NAMU_DB') if os.getenv('NAMU_DB') else 'data', 
+            set_data = {
+                "db" : os.getenv('NAMU_DB') if os.getenv('NAMU_DB') else 'data',
                 "db_type" : os.getenv('NAMU_DB_TYPE') if os.getenv('NAMU_DB_TYPE') else 'sqlite'
             }
 
+            print('DB name : ' + set_data['db'])
+            print('DB type : ' + set_data['db_type'])
+
             break
-        else:        
+        else:
             new_json = ['', '']
             normal_db_type = ['sqlite', 'mysql']
 
-            print('DB type (sqlite, mysql) : ', end = '')
+            print('DB type (sqlite) [sqlite, mysql] : ', end = '')
             new_json[0] = str(input())
             if new_json[0] == '' or not new_json[0] in normal_db_type:
                 new_json[0] = 'sqlite'
@@ -46,32 +52,23 @@ while 1:
                 if f_src:
                     all_src += [f_src.groups()[0]]
 
-            if all_src != []:
-                print('DB name (' + ', '.join(all_src) + ') : ', end = '')
+            if all_src != [] and new_json[0] != 'mysql':
+                print('DB name (data) [' + ', '.join(all_src) + '] : ', end = '')
             else:
                 print('DB name (data) : ', end = '')
 
             new_json[1] = str(input())
             if new_json[1] == '':
                 new_json[1] = 'data'
-                
+
             with open('data/set.json', 'w') as f:
                 f.write('{ "db" : "' + new_json[1] + '", "db_type" : "' + new_json[0] + '" }')
-                
+
             set_data = json.loads(open('data/set.json').read())
-            
+
             break
-        
-print('DB name : ' + set_data['db'])
-print('DB type : ' + set_data['db_type'])
 
-def db_change(data):
-    if set_data['db_type'] == 'mysql':
-        data = data.replace('random()', 'rand()')
-        data = data.replace('%', '%%')
-        data = data.replace('?', '%s')
-
-    return data
+db_data_get(set_data['db_type'])
 
 if set_data['db_type'] == 'mysql':
     try:
@@ -93,12 +90,12 @@ if set_data['db_type'] == 'mysql':
 
         with open('data/mysql.json', 'w') as f:
             f.write('{ "user" : "' + new_json[0] + '", "password" : "' + new_json[1] + '" }')
-                
+
         set_data_mysql = json.loads(open('data/mysql.json').read())
 
     conn = pymysql.connect(
-        host = 'localhost', 
-        user = set_data_mysql['user'], 
+        host = 'localhost',
+        user = set_data_mysql['user'],
         password = set_data_mysql['password'],
         charset = 'utf8mb4'
     )
