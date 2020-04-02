@@ -10,10 +10,18 @@ import threading
 import pickle
 import re
 
+def db_change(data):
+    if set_data == 'mysql':
+        data = data.replace('random()', 'rand()')
+        data = data.replace('%', '%%')
+        data = data.replace('?', '%s')
+
+    return data
+
 # 디비 설정
 while 1:
     try:
-        set_data = json.loads(open('data/set.json').read())
+        set_data = json.loads(open('data/set.json', encoding='utf8').read())
         if not 'db_type' in set_data:
             try:
                 os.remove('data/set.json')
@@ -61,10 +69,10 @@ while 1:
             if new_json[1] == '':
                 new_json[1] = 'data'
 
-            with open('data/set.json', 'w') as f:
+            with open('data/set.json', 'w', encoding='utf8') as f:
                 f.write('{ "db" : "' + new_json[1] + '", "db_type" : "' + new_json[0] + '" }')
 
-            set_data = json.loads(open('data/set.json').read())
+            set_data = json.loads(open('data/set.json', encoding='utf8').read())
 
             break
 
@@ -72,12 +80,12 @@ db_data_get(set_data['db_type'])
 
 if set_data['db_type'] == 'mysql':
     try:
-        set_data_mysql = json.loads(open('data/mysql.json').read())
+        set_data_mysql = json.loads(open('data/mysql.json', encoding='utf8').read())
     except:
         new_json = ['', '']
 
         while 1:
-            print('DB user id : ', end = '')
+            print('DB user ID : ', end = '')
             new_json[0] = str(input())
             if new_json[0] != '':
                 break
@@ -87,14 +95,19 @@ if set_data['db_type'] == 'mysql':
             new_json[1] = str(input())
             if new_json[1] != '':
                 break
+                
+        print('DB host (localhost) : ', end = '')
+        new_json[2] = str(input())
+        if new_json[2] == '':
+            new_json[2] == 'localhost'
 
-        with open('data/mysql.json', 'w') as f:
-            f.write('{ "user" : "' + new_json[0] + '", "password" : "' + new_json[1] + '" }')
+        with open('data/mysql.json', 'w', encoding='utf8') as f:
+            f.write('{ "user" : "' + new_json[0] + '", "password" : "' + new_json[1] + '", "host" : "' + new_json[2] + '" }')
 
-        set_data_mysql = json.loads(open('data/mysql.json').read())
+        set_data_mysql = json.loads(open('data/mysql.json', encoding='utf8').read())
 
     conn = pymysql.connect(
-        host = 'localhost',
+        host = set_data_mysql['host'] if 'host' in set_data_mysql else 'localhost',
         user = set_data_mysql['user'],
         password = set_data_mysql['password'],
         charset = 'utf8mb4'
