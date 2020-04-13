@@ -18,7 +18,7 @@ def db_change(data):
 
     return data
 
-# 디비 설정
+# DB
 while 1:
     try:
         set_data = json.loads(open('data/set.json', encoding='utf8').read())
@@ -58,7 +58,7 @@ while 1:
             for i_data in os.listdir("."):
                 f_src = re.search("(.+)\.db$", i_data)
                 if f_src:
-                    all_src += [f_src.groups()[0]]
+                    all_src += [f_src.group(1)]
 
             if all_src != [] and new_json[0] != 'mysql':
                 print('DB name (data) [' + ', '.join(all_src) + '] : ', end = '')
@@ -82,7 +82,7 @@ if set_data['db_type'] == 'mysql':
     try:
         set_data_mysql = json.loads(open('data/mysql.json', encoding='utf8').read())
     except:
-        new_json = ['', '']
+        new_json = ['', '', '']
 
         while 1:
             print('DB user ID : ', end = '')
@@ -124,7 +124,7 @@ else:
     conn = sqlite3.connect(set_data['db'] + '.db', check_same_thread = False)
     curs = conn.cursor()
 
-# 편집자를 구분하는 부분입니다. 리그베다 위키 유저는 R:로, 나무위키 유저는 N:의 Prefix가 붙습니다.
+# Process
 def editorProcess(editor):
     if not re.search("^R:", editor) or not re.search('(\.|:)', editor):
         editor = "N:" + editor
