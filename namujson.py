@@ -10,14 +10,6 @@ import threading
 import pickle
 import re
 
-def db_change(data):
-    if set_data == 'mysql':
-        data = data.replace('random()', 'rand()')
-        data = data.replace('%', '%%')
-        data = data.replace('?', '%s')
-
-    return data
-
 # DB
 while 1:
     try:
@@ -56,7 +48,7 @@ while 1:
 
             all_src = []
             for i_data in os.listdir("."):
-                f_src = re.search("(.+)\.db$", i_data)
+                f_src = re.search(r"(.+)\.db$", i_data)
                 if f_src:
                     all_src += [f_src.group(1)]
 
@@ -75,8 +67,6 @@ while 1:
             set_data = json.loads(open('data/set.json', encoding='utf8').read())
 
             break
-
-db_data_get(set_data['db_type'])
 
 if set_data['db_type'] == 'mysql':
     try:
@@ -124,9 +114,17 @@ else:
     conn = sqlite3.connect(set_data['db'] + '.db', check_same_thread = False)
     curs = conn.cursor()
 
+def db_change(data):
+    if set_data['db_type'] == 'mysql':
+        data = data.replace('random()', 'rand()')
+        data = data.replace('%', '%%')
+        data = data.replace('?', '%s')
+
+    return data
+
 # Process
 def editorProcess(editor):
-    if not re.search("^R:", editor) or not re.search('(\.|:)', editor):
+    if not re.search(r"^R:", editor) or not re.search(r'(\.|:)', editor):
         editor = "N:" + editor
     
     return(editor)
@@ -147,14 +145,17 @@ def mainprocess(dictdata):
                 
             curs.execute(db_change("insert into data (title, data) values (?, ?)"), [title, text])
             
+            bulk_input = []
             for y in range(revision):
-                curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), [
+                bulk_input += [[
                     str(y + 1), 
                     title, 
                     text if y == revision else '', 
                     editTime, 
                     editorProcess(d_dict['contributors'][y])
-                ])
+                ]]
+
+            curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), bulk_input)
 
     curs.execute(db_change('delete from other where name = "count_all_title"'))
     curs.execute(db_change('insert into other (name, data) values ("count_all_title", ?)'), [str(x)])
