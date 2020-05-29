@@ -6,6 +6,7 @@ import datetime
 import pymysql
 import sqlite3
 import threading
+import pickle
 import re
 
 # DB
@@ -173,7 +174,7 @@ if(os.path.exists(os.path.join("rawdata.pickle")) != True):
     print("JSON 데이터 사전형으로 변환 완료")
 
     tempdata = open('rawdata.pickle', 'wb')
-    pickle.dump(dictdata,tempdata)
+    pickle.dump(dictdata, tempdata)
     print("다음 실행을 위해서 임시 데이터를 저장합니다.")
 
 rawdata_address = r"rawdata.pickle"
