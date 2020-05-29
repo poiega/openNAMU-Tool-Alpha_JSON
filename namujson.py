@@ -8,14 +8,6 @@ import sqlite3
 import threading
 import re
 
-def db_change(data):
-    if set_data['db_type'] == 'mysql':
-        data = data.replace('random()', 'rand()')
-        data = data.replace('%', '%%')
-        data = data.replace('?', '%s')
-
-    return data
-
 # DB
 while 1:
     try:
@@ -73,6 +65,16 @@ while 1:
             set_data = json.loads(open('data/set.json', encoding='utf8').read())
 
             break
+
+def db_change(data):
+    global set_data
+    
+    if set_data['db_type'] == 'mysql':
+        data = data.replace('random()', 'rand()')
+        data = data.replace('%', '%%')
+        data = data.replace('?', '%s')
+
+    return data
 
 if set_data['db_type'] == 'mysql':
     try:
@@ -162,7 +164,10 @@ def mainprocess(dictdata):
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
 
-dictdata = json.load(open('namuwikidata.json', 'r', encoding='utf8'))
+namuwikidata = open('namuwikidata.json', 'r')
+dictdata = json.load(namuwikidata)
+namuwikidata.close()
+
 print("JSON 데이터 읽기 완료")
 
 mainprocess(dictdata)
