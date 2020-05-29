@@ -156,7 +156,7 @@ def mainprocess(dictdata):
                     editorProcess(d_dict['contributors'][y])
                 ]]
 
-            curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), bulk_input)
+            curs.executemany(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), bulk_input)
 
     curs.execute(db_change('delete from other where name = "count_all_title"'))
     curs.execute(db_change('insert into other (name, data) values ("count_all_title", ?)'), [str(x)])
@@ -181,7 +181,7 @@ else :
     print("JSON 데이터 사전형으로 변환 완료")
     
     tempdata = open('rawdata.pickle', 'wb')
-    pickle.dump(dictdata,tempdata)
+    pickle.dump(dictdata, tempdata)
     print("다음 실행을 위해서 임시 데이터를 저장합니다.")
     
     rawdata_address = r"rawdata.pickle"
