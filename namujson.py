@@ -10,6 +10,14 @@ import threading
 import pickle
 import re
 
+def db_change(data):
+    if set_data['db_type'] == 'mysql':
+        data = data.replace('random()', 'rand()')
+        data = data.replace('%', '%%')
+        data = data.replace('?', '%s')
+
+    return data
+
 # DB
 while 1:
     try:
@@ -113,14 +121,6 @@ if set_data['db_type'] == 'mysql':
 else:
     conn = sqlite3.connect(set_data['db'] + '.db', check_same_thread = False)
     curs = conn.cursor()
-
-def db_change(data):
-    if set_data['db_type'] == 'mysql':
-        data = data.replace('random()', 'rand()')
-        data = data.replace('%', '%%')
-        data = data.replace('?', '%s')
-
-    return data
 
 # Process
 def editorProcess(editor):
