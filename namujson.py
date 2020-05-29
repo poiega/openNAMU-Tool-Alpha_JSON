@@ -168,7 +168,6 @@ if os.path.exists(os.path.join("rawdata.pickle")) == True:
     rawdata_address = r"rawdata.pickle"
     rawdata = open(os.path.join(rawdata_address), 'rb')
     dictdata = pickle.load(rawdata)
-    rawdata.close()
     print("임시 파일이 로딩되었습니다.")
 else :
     print("임시 파일이 없으므로 JSON을 로딩합니다.")
@@ -188,7 +187,6 @@ else :
     rawdata_address = r"rawdata.pickle"
     rawdata = open(os.path.join(rawdata_address), 'rb')
     dictdata = pickle.load(rawdata)
-    rawdata.close()
     print("임시 파일이 로딩되었습니다.")
     
 print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
