@@ -161,15 +161,9 @@ def mainprocess(dictdata):
     print("문서 변환 작업이 종료되었습니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
-if os.path.exists('namuwikidata.json') != True:
-    jsondata = os.path.join('namuwikidata.json')
-    namuwikidata = open(jsondata, 'r', encoding='utf8')
-    print("JSON 데이터 읽기 완료")
 
-    dictdata = json.load(namuwikidata)
-    namuwikidata.close()
-    print("JSON 데이터 사전형으로 변환 완료")
-    
-print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
+dictdata = json.load(open('namuwikidata.json', 'r', encoding='utf8'))
+print("JSON 데이터 읽기 완료")
+
 mainprocess(dictdata)
 conn.commit()
