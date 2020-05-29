@@ -1,13 +1,11 @@
 # 모듈 임포트
 import json
 import os
-import pickle
 import urllib.parse
 import datetime
 import pymysql
 import sqlite3
 import threading
-import pickle
 import re
 
 def db_change(data):
@@ -171,14 +169,6 @@ if os.path.exists(os.path.join("rawdata.pickle")) != True:
     dictdata = json.load(namuwikidata)
     namuwikidata.close()
     print("JSON 데이터 사전형으로 변환 완료")
-
-    tempdata = open('rawdata.pickle', 'wb', encoding='utf8')
-    pickle.dump(dictdata,tempdata)
-    print("다음 실행을 위해서 임시 데이터를 저장합니다.")
-
-rawdata = open('rawdata.pickle', 'rb', encoding='utf8')
-dictdata = pickle.load(rawdata)
-rawdata.close()
     
 print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
 mainprocess(dictdata)
