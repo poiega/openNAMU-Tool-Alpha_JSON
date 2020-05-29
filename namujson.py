@@ -161,7 +161,7 @@ def mainprocess(dictdata):
     print("문서 변환 작업이 종료되었습니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
-if os.path.exists(os.path.join("rawdata.pickle")) != True:
+if os.path.exists('namuwikidata.json') != True:
     jsondata = os.path.join('namuwikidata.json')
     namuwikidata = open(jsondata, 'r', encoding='utf8')
     print("JSON 데이터 읽기 완료")
