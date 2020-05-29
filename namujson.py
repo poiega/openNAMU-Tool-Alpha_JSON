@@ -163,12 +163,24 @@ def mainprocess(dictdata):
     print("문서 변환 작업이 종료되었습니다.")
 
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
+if(os.path.exists(os.path.join("rawdata.pickle")) != True):
+    jsondata = os.path.join('namuwikidata.json')
+    namuwikidata = open(jsondata, 'r')
+    print("JSON 데이터 읽기 완료")
 
-namuwikidata = open('namuwikidata.json', 'r')
-dictdata = json.load(namuwikidata)
-namuwikidata.close()
+    dictdata = json.load(namuwikidata)
+    namuwikidata.close()
+    print("JSON 데이터 사전형으로 변환 완료")
 
-print("JSON 데이터 읽기 완료")
+    tempdata = open('rawdata.pickle', 'wb')
+    pickle.dump(dictdata,tempdata)
+    print("다음 실행을 위해서 임시 데이터를 저장합니다.")
 
+rawdata_address = r"rawdata.pickle"
+rawdata = open(os.path.join(rawdata_address), 'rb')
+dictdata = pickle.load(rawdata)
+rawdata.close()
+    
+print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
 mainprocess(dictdata)
 conn.commit()
