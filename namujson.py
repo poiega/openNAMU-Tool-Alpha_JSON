@@ -124,13 +124,13 @@ else:
     curs = conn.cursor()
 
 # Process
-def editorProcess(editor):
-    if not re.search(r"^R:", editor) or not re.search(r'(\.|:)', editor):
-        editor = "N:" + editor
+def editorProcess(editor):    
+    return "N:" + editor if not re.search(r"^R:", editor) or not re.search(r'(\.|:)', editor) else editor
+
+def url_pas(data):
+    return urllib.parse.quote(data).replace('/','%2F')
     
-    return(editor)
-    
-def mainprocess(dictdata):
+def main_process(dictdata, get_num):
     editTime = str(datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S"))
     x = 0
     for d_dict in dictdata:        
@@ -143,57 +143,50 @@ def mainprocess(dictdata):
         if namespace == '0' or namespace == '1':
             text = str(d_dict['text'])
             title = ('틀:' if namespace == '1' else '') + str(d_dict['title'])
-            revision = len(d_dict['contributors'])
                 
             curs.execute(db_change("insert into data (title, data) values (?, ?)"), [title, text])
             
-            bulk_input = []
-            for y in range(revision):
-                bulk_input += [[
+            if get_num == '1':
+                revision = len(d_dict['contributors'])
+                bulk_input = [[
                     str(y + 1), 
                     title, 
                     text if y == revision else '', 
                     editTime, 
                     editorProcess(d_dict['contributors'][y])
-                ]]
+                ] for y in range(revision)]
 
-            curs.executemany(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), bulk_input)
+                curs.executemany(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values (?, ?, ?, ?, ?, '', '0', '')"), bulk_input)
+            else:
+                curs.execute(db_change("insert into history (id, title, data, date, ip, send, leng, hide) values ('1', ?, ?, ?, ?, ?, '0', '')"), [
+                    title, 
+                    text, 
+                    editTime, 
+                    'Tool:namujson'
+                    'https://namu.wiki/history/' + url_pas(title)
+                ])
 
     curs.execute(db_change('delete from other where name = "count_all_title"'))
     curs.execute(db_change('insert into other (name, data) values ("count_all_title", ?)'), [str(x)])
-    
-    print("문서 변환 작업이 종료되었습니다.")
 
+print('----')
+print('1 : 전체 불러오기')
+print('2 : data만 불러오기 (역사에는 나무위키 링크 삽입)')
+print('모드 선택 : ', end = '')
+
+get_num = input()
+get_num = '1' if get_num == '1' else '2'
+
+print('----')
 print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
-if os.path.exists(os.path.join("rawdata.pickle")) == True:
-    try:
-        rawdata_address = r"rawdata.pickle"
-        rawdata = open(os.path.join(rawdata_address), 'rb')
-        dictdata = pickle.load(rawdata)
-        print("임시 파일이 로딩되었습니다.")
-    except:
-        jsondata = os.path.join('namuwikidata.json')
-        namuwikidata = open(jsondata, 'r')
-        print("JSON 데이터 읽기 완료")
-        
-        dictdata = json.load(namuwikidata)
-        namuwikidata.close()
-        print("JSON 데이터 사전형으로 변환 완료")
-else :
-    print("임시 파일이 없으므로 JSON을 로딩합니다.")
-    
-    jsondata = os.path.join('namuwikidata.json')
-    namuwikidata = open(jsondata, 'r')
-    print("JSON 데이터 읽기 완료")
-    
-    dictdata = json.load(namuwikidata)
-    namuwikidata.close()
-    print("JSON 데이터 사전형으로 변환 완료")
-    
-    tempdata = open('rawdata.pickle', 'wb')
-    pickle.dump(dictdata, tempdata)
-    print("다음 실행을 위해서 임시 데이터를 저장합니다.")
-    
-print("모든 사전 작업이 종료되었습니다. 변환을 시작합니다.")
-mainprocess(dictdata)
+
+dictdata = json.load(open('namuwikidata.json', 'r', encoding = 'utf8'))
+
+print("변환을 시작합니다.")
+print('----')
+
+main_process(dictdata, get_num)
 conn.commit()
+
+print('----')
+print("문서 변환 작업이 종료되었습니다.")
