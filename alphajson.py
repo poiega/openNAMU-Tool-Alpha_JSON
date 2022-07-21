@@ -171,14 +171,14 @@ def main_process(dictdata, get_num):
 
 print('----')
 print('1 : 전체 불러오기')
-print('2 : data만 불러오기 (역사에는 나무위키 링크 삽입)')
+print('2 : data만 불러오기 (역사에는 알파위키 링크 삽입)')
 print('모드 선택 : ', end = '')
 
 get_num = input()
 get_num = '1' if get_num == '1' else '2'
 
 print('----')
-print("이 스크립트는 나무위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
+print("이 스크립트는 알파위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
 
 dictdata = json.load(open('namuwikidata.json', 'r', encoding = 'utf8'))
 
