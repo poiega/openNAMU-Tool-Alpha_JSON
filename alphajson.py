@@ -163,7 +163,7 @@ def main_process(dictdata, get_num):
                     text, 
                     editTime, 
                     'Tool:namujson'
-                    'https://namu.wiki/history/' + url_pas(title)
+                    'https://alphawiki.org/history/' + url_pas(title)
                 ])
 
     curs.execute(db_change('delete from other where name = "count_all_title"'))
@@ -180,7 +180,7 @@ get_num = '1' if get_num == '1' else '2'
 print('----')
 print("이 스크립트는 알파위키 JSON 데이터가 필요합니다. 데이터를 로딩합니다.")
 
-dictdata = json.load(open('namuwikidata.json', 'r', encoding = 'utf8'))
+dictdata = json.load(open('alphawikidata.json', 'r', encoding = 'utf8'))
 
 print("변환을 시작합니다.")
 print('----')
